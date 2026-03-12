@@ -40,9 +40,8 @@ class AssetSerializer(serializers.ModelSerializer):
         fields = ('id','name','description','details','serial_number','location','category','category_id','subcategory','subcategory_id','available','total_quantity','image','image_url', 'status')
     
     def get_image_url(self, obj):
-        request = self.context.get('request')
         if obj.image:
-            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+            return obj.image.url
         return None
 
     def get_status(self, obj):
