@@ -1,28 +1,12 @@
 import { Capacitor } from '@capacitor/core';
 
-// Direct API call to Django backend
-const hostname = window.location.hostname;
-const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.');
-const isVercel = hostname.includes('vercel.app');
+export const API_BASE = 'https://asset-booking-backend.vercel.app';
 
-// Priority:
-// 1. Environment variable (standard practice)
-// 2. Localhost (for web development)
-// 3. Current origin (if both on same domain)
-// 4. Fallbacks
-export const API_BASE = process.env.REACT_APP_API_URL ||
-    (isLocalhost ? 'http://127.0.0.1:8050' :
-        (isVercel ? 'https://asset-booking-backend.vercel.app' :
-            `https://${hostname.replace('frontend', 'backend')}`));
-
-// Standalone mode is enabled if on Vercel (production) to avoid backend dependency
-export const isStandaloneMode = () => {
-    const hostname = window.location.hostname;
-    return hostname.includes('vercel.app') || localStorage.getItem('standalone_mode') === 'true';
-};
+// Standalone mode is disabled
+export const isStandaloneMode = () => false;
 
 export function setStandaloneMode(value) {
-    localStorage.setItem('standalone_mode', value ? 'true' : 'false');
+    // Disabled
 }
 
 export const MOCK_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImRlbW9fdXNlciJ9.signature';

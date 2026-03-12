@@ -1,7 +1,15 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Try loading .env.local first, then .env
+env_local_path = BASE_DIR / '.env.local'
+if env_local_path.exists():
+    load_dotenv(env_local_path)
+else:
+    load_dotenv()
 
 SECRET_KEY = 'django-insecure-placeholder-key'
 
@@ -21,6 +29,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -95,7 +105,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Media (user uploaded files)
@@ -107,6 +116,22 @@ if 'VERCEL' in os.environ:
     MEDIA_ROOT = os.path.join('/tmp', 'media')
     if not os.path.exists(MEDIA_ROOT):
         os.makedirs(MEDIA_ROOT)
+
+# Cloudinary Integration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dcqegufoe'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '811335934986437'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '0y8QVc7Jg7FooYdRqxyyOjAXU94'),
+}
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

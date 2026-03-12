@@ -170,7 +170,7 @@ export default function BookingList() {
       if (uploadAction === 'return') {
         alert('Asset returned successfully. Logging out...');
         clearTokens();
-        window.location.href = '/login';
+        window.location.href = '#/login';
       }
 
     } catch (err) {

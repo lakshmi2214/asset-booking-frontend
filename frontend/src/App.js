@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Badge } from 'react-bootstrap';
 import Signup from './Signup';
 import Login from './Login';
@@ -12,23 +12,26 @@ import VerifyEmail from './VerifyEmail';
 import Footer from './Footer';
 import ChatBot from './ChatBot';
 
-import { API_BASE } from './auth';
+import { API_BASE, isStandaloneMode } from './auth';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => localStorage.getItem('access'));
+  const [demoMode, setDemoMode] = useState(isStandaloneMode());
 
   useEffect(() => {
-    const token = localStorage.getItem('access');
-    if (token) {
-      setUser(token);
-    }
-  }, []);
+    // Check for demo mode changes
+    const interval = setInterval(() => {
+        const current = isStandaloneMode();
+        if (current !== demoMode) setDemoMode(current);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [demoMode]);
 
   const handleLogout = () => {
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
     setUser(null);
-    window.location.href = '/login';
+    window.location.href = '#/login';
   };
 
   return (
@@ -49,7 +52,10 @@ function App() {
                 fontWeight: 800,
                 fontSize: '1rem'
               }}>A</div>
-              <span style={{ fontWeight: 800, letterSpacing: '-1px' }}>AssetFlow</span>
+              <div className="d-flex flex-column">
+                <span style={{ fontWeight: 800, letterSpacing: '-1px', lineHeight: 1 }}>AssetFlow</span>
+                {demoMode && <span style={{ fontSize: '0.65rem', color: '#f43f5e', fontWeight: 700, letterSpacing: '1px' }}>DEMO MODE</span>}
+              </div>
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="border-0" />
             <Navbar.Collapse id="basic-navbar-nav">
@@ -60,6 +66,11 @@ function App() {
                 {user && <Nav.Link as={Link} to="/bookings" className="px-3">My History</Nav.Link>}
               </Nav>
               <Nav className="gap-2 align-items-center">
+                {demoMode && (
+                   <Badge bg="danger" className="me-2 d-none d-lg-block" style={{ fontSize: '0.7rem' }}>
+                     OFFLINE MODE
+                   </Badge>
+                )}
                 {user ? (
                   <Button variant="link" className="text-light text-decoration-none fw-bold" onClick={handleLogout}>
                     Sign Out

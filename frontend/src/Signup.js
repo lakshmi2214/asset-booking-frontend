@@ -34,44 +34,19 @@ export default function Signup({ setUser }) {
     try {
       setMsg('Signing up...');
 
-      let res;
-      if (isStandaloneMode()) {
-        res = await mockSignup(requestData);
-      } else {
-        try {
-          res = await fetch(`${API_BASE}/api/v1/auth/signup/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestData)
-          });
-        } catch (err) {
-          if (err.message === 'Failed to fetch') {
-            console.warn('Backend connection failed, switching to demo mode');
-            setStandaloneMode(true);
-            res = await mockSignup(requestData);
-          } else {
-            throw err;
-          }
-        }
-      }
+      const res = await fetch(`${API_BASE}/api/v1/auth/signup/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
+      });
 
       if (res.ok) {
         // Auto-login after signup
-        let tokenRes;
-        if (isStandaloneMode()) {
-          tokenRes = await mockLogin(username, password);
-        } else {
-          try {
-            tokenRes = await fetch(`${API_BASE}/api/v1/auth/token/`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password })
-            });
-          } catch (err) {
-            setStandaloneMode(true);
-            tokenRes = await mockLogin(username, password);
-          }
-        }
+        const tokenRes = await fetch(`${API_BASE}/api/v1/auth/token/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
 
         if (tokenRes.ok) {
           const tokens = await tokenRes.json();

@@ -1,5 +1,16 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import Asset, Booking, Location, LocationHistory, CancellationRequest, Category, SubCategory
+
+# Unregister the default User admin
+admin.site.unregister(User)
+
+# Register a custom User admin to display signup (date_joined) and login (last_login) details
+@admin.register(User)
+class CustomUserAdmin(BaseUserAdmin):
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'date_joined', 'last_login')
+    ordering = ('-date_joined',)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -32,6 +43,7 @@ class AssetAdmin(admin.ModelAdmin):
 class BookingAdmin(admin.ModelAdmin):
     list_display = (
         'asset',
+        'asset_img',
         'user',
         'status',
         'start_datetime',
@@ -48,7 +60,14 @@ class BookingAdmin(admin.ModelAdmin):
         'contact_mobile',
         'cancellation_reason'
     )
-    readonly_fields = ('received_img', 'returned_img')
+    readonly_fields = ('asset_img', 'received_img', 'returned_img')
+
+    def asset_img(self, obj):
+        if obj.asset and obj.asset.image:
+            from django.utils.html import format_html
+            return format_html('<a href="{}" target="_blank"><img src="{}" style="height:60px; border-radius:4px;"/></a>', obj.asset.image.url, obj.asset.image.url)
+        return '-'
+    asset_img.short_description = 'Asset Image'
 
     def received_img(self, obj):
         if obj.received_image:

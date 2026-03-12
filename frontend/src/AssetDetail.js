@@ -18,13 +18,17 @@ export default function AssetDetail() {
       if (isStandaloneMode()) {
         if (isMounted) {
           import('./mockData').then(m => {
-            const mockAsset = m.MOCK_ASSETS.find(a => String(a.id) === String(id));
+            const safeMockAssets = Array.isArray(m.MOCK_ASSETS) ? m.MOCK_ASSETS : [];
+            const mockAsset = safeMockAssets.find(a => String(a.id) === String(id));
             if (mockAsset) {
               setAsset(mockAsset);
               setError(null);
             } else {
               setError('Failed to load asset details');
             }
+            setLoading(false);
+          }).catch(() => {
+            setError('Failed to load asset details');
             setLoading(false);
           });
         }
@@ -55,7 +59,8 @@ export default function AssetDetail() {
         console.error('Error loading asset, falling back to mock:', err);
         if (isMounted) {
           import('./mockData').then(m => {
-            const mockAsset = m.MOCK_ASSETS.find(a => String(a.id) === String(id));
+            const safeMockAssets = Array.isArray(m.MOCK_ASSETS) ? m.MOCK_ASSETS : [];
+            const mockAsset = safeMockAssets.find(a => String(a.id) === String(id));
             if (mockAsset) {
               setAsset(mockAsset);
               setError(null);

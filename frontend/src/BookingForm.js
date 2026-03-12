@@ -35,21 +35,6 @@ export default function AssetBooking() {
     setLoading(true);
 
     const loadInitialData = async () => {
-      // If in standalone mode, use mock data immediately
-      if (isStandaloneMode()) {
-        if (isMounted) {
-          setAssets(MOCK_ASSETS);
-          const map = new Map();
-          MOCK_ASSETS.forEach((a) => {
-            if (a.location) map.set(a.location.id, a.location);
-          });
-          setLocations(Array.from(map.values()));
-          setCategories(MOCK_CATEGORIES);
-        }
-        setLoading(false);
-        return;
-      }
-
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -70,54 +55,34 @@ export default function AssetBooking() {
         if (isMounted) {
           if (assetsRes && assetsRes.ok) {
             const assetsData = await assetsRes.json();
-            if (assetsData && assetsData.length > 0) {
-              setAssets(assetsData);
-              const map = new Map();
-              assetsData.forEach((a) => {
-                if (a.location) map.set(a.location.id, a.location);
-              });
-              setLocations(Array.from(map.values()));
-            } else {
-              setMsg('No backend assets found, using mock data.');
-              setAssets(MOCK_ASSETS);
-              const map = new Map();
-              MOCK_ASSETS.forEach((a) => {
-                if (a.location) map.set(a.location.id, a.location);
-              });
-              setLocations(Array.from(map.values()));
-            }
-          } else {
-            setMsg('Error loading assets from backend, using mock data.');
-            setAssets(MOCK_ASSETS);
+            const safeAssetsData = Array.isArray(assetsData) && assetsData.length > 0 ? assetsData : [];
+
+            setAssets(safeAssetsData);
             const map = new Map();
-            MOCK_ASSETS.forEach((a) => {
-              if (a.location) map.set(a.location.id, a.location);
+            safeAssetsData.forEach((a) => {
+              if (a && a.location) map.set(a.location.id, a.location);
             });
             setLocations(Array.from(map.values()));
+          } else {
+            setMsg('Error loading assets from backend.');
+            setAssets([]);
+            setLocations([]);
           }
 
           if (categoriesRes && categoriesRes.ok) {
             const categoriesData = await categoriesRes.json();
-            if (categoriesData && categoriesData.length > 0) {
-              setCategories(categoriesData);
-            } else {
-              setCategories(MOCK_CATEGORIES);
-            }
+            setCategories(Array.isArray(categoriesData) && categoriesData.length > 0 ? categoriesData : []);
           } else {
-            setCategories(MOCK_CATEGORIES);
+            setCategories([]);
           }
         }
       } catch (err) {
-        console.error("Fetch error, falling back to mock data:", err);
+        console.error("Fetch error:", err);
         if (isMounted) {
-          setMsg('');
-          setAssets(MOCK_ASSETS);
-          const map = new Map();
-          MOCK_ASSETS.forEach((a) => {
-            if (a.location) map.set(a.location.id, a.location);
-          });
-          setLocations(Array.from(map.values()));
-          setCategories(MOCK_CATEGORIES);
+          setMsg('Network error. Failed to load data.');
+          setAssets([]);
+          setLocations([]);
+          setCategories([]);
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -253,8 +218,8 @@ export default function AssetBooking() {
   }
 
   const summary = useMemo(() => {
-    const loc = locations.find((l) => l.id === Number(selectedLocationId));
-    const asset = assets.find((a) => a.id === Number(selectedAssetId));
+    const loc = Array.isArray(locations) ? locations.find((l) => l && l.id === Number(selectedLocationId)) : null;
+    const asset = Array.isArray(assets) ? assets.find((a) => a && a.id === Number(selectedAssetId)) : null;
     return {
       asset: asset ? asset.name : '—',
       fullName,
@@ -283,16 +248,17 @@ export default function AssetBooking() {
   ]);
 
   const filteredAssets = useMemo(() => {
+    if (!Array.isArray(assets)) return [];
     if (!selectedCategoryId) return assets;
 
     // Check if category is a parent category or a subcategory
-    const isParent = categories.some(cat => cat.id === selectedCategoryId);
+    const isParent = Array.isArray(categories) && categories.some(cat => cat && cat.id === selectedCategoryId);
 
     if (isParent) {
-      return assets.filter(a => a.category && a.category.id === selectedCategoryId);
+      return assets.filter(a => a && a.category && a.category.id === selectedCategoryId);
     } else {
       // Check if it's a subcategory ID
-      return assets.filter(a => a.subcategory && a.subcategory.id === selectedCategoryId);
+      return assets.filter(a => a && a.subcategory && a.subcategory.id === selectedCategoryId);
     }
   }, [assets, selectedCategoryId, categories]);
 
@@ -731,7 +697,7 @@ export default function AssetBooking() {
                 setStart(null);
                 setEnd(null);
                 setConfirmStage(false);
-                window.location.href = '/bookings';
+                window.location.href = '#/bookings';
               }}
             >
               OK, Great!

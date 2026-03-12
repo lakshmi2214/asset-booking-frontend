@@ -4,9 +4,13 @@ import os
 
 def sync():
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    # The database is in the backend (or local_backend) folder relative to this script
     db_path = os.path.join(script_dir, 'backend', 'db.sqlite3')
     if not os.path.exists(db_path):
-        print(f"Error: {db_path} not found.")
+        db_path = os.path.join(script_dir, 'local_backend', 'db.sqlite3')
+    
+    if not os.path.exists(db_path):
+        print(f"Error: Database not found (checked backend/ and local_backend/)")
         return
 
     conn = sqlite3.connect(db_path)
@@ -96,6 +100,9 @@ export const MOCK_ASSETS = {json.dumps(formatted_assets, indent=4)};
     # Sync media files
     print("Syncing media files...")
     media_src = os.path.join(script_dir, 'backend', 'media')
+    if not os.path.exists(media_src):
+        media_src = os.path.join(script_dir, 'local_backend', 'media')
+    
     media_dest = os.path.join(script_dir, 'frontend', 'public', 'media')
     if os.path.exists(media_src):
         if not os.path.exists(media_dest):

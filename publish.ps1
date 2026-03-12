@@ -1,19 +1,31 @@
-# Run the sync script to update mockData.js and media
+# 1. Sync local data and images to the frontend folder
 python sync_db_to_mock.py
 
-# Stage the updated mock data, media, and the script itself
-git add frontend/src/mockData.js
-git add frontend/public/media/*
-git add publish.ps1
-git add vercel.json
+# 2. Enter the frontend folder (which is treated as a separate repository)
+Set-Location frontend
 
-# Only commit if there are changes
+# 3. Ensure the remote points to the new requested repository
+$newRepo = "https://github.com/lakshmi2214/Assets_Frontend-.git"
+if (!(Test-Path .git)) {
+    git init
+    git remote add origin $newRepo
+    git branch -M main
+} else {
+    git remote set-url origin $newRepo
+}
+
+# 4. Stage and push frontend changes including images
+git add .
 $status = git status --porcelain
 if ($status) {
-    git commit -m "Sync assets and update configuration"
-    git push origin main
-    Write-Host "`nSuccessfully published updated assets to GitHub and Vercel!" -ForegroundColor Green
-    Write-Host "Vercel will redeploy automatically in a few minutes." -ForegroundColor Cyan
+    git commit -m "Update assets and images from local backend"
+    git push origin main --force
+    Write-Host "`nSuccessfully pushed exact frontend code and images to $newRepo!" -ForegroundColor Green
+    Write-Host "Verify your Vercel deployment is linked to this new repository." -ForegroundColor Cyan
 } else {
-    Write-Host "`nNo changes detected. Your site is already up to date!" -ForegroundColor Yellow
+    # Even if no code changes, try to push in case remote was just changed
+    git push origin main --force
+    Write-Host "`nFrontend is already up to date on GitHub." -ForegroundColor Yellow
 }
+
+Set-Location ..

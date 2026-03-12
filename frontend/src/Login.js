@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
-import { API_BASE, mockLogin, isStandaloneMode } from './auth';
+import { API_BASE, mockLogin, isStandaloneMode, setStandaloneMode } from './auth';
 
 export default function Login({ setUser }) {
   const [username, setUsername] = useState('');
@@ -17,17 +17,11 @@ export default function Login({ setUser }) {
     }
     try {
       setMsg('Logging in...');
-      let tokenRes;
-
-      if (isStandaloneMode()) {
-        tokenRes = await mockLogin(username, password);
-      } else {
-        tokenRes = await fetch(`${API_BASE}/api/v1/auth/token/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-      }
+      const tokenRes = await fetch(`${API_BASE}/api/v1/auth/token/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
 
       if (tokenRes.ok) {
         const tokens = await tokenRes.json();
